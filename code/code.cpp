@@ -17,7 +17,6 @@ struct Ligacao{
     int id_linha; //id da linha
 };
 
-int numEstacoesTotal, numLigacoesTotal, numLinhas;
 vector <Estacao*> listaEstacoes; //lista global de todas as estações existentes
 vector <Ligacao*> listaLigacoes; //lista global de todas as ligações existentes
 
@@ -65,6 +64,7 @@ Estacao* getEstacao(int id_estacao){
     return NULL; //a estacao nao existe
 }
 
+int numEstacoesTotal, numLigacoesTotal, numLinhas;
 //obtem os inputs e cria todas as entidades
 void getInput(){
     scanf("%d %d %d", &numEstacoesTotal, &numLigacoesTotal, &numLinhas);
