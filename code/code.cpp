@@ -1,6 +1,9 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <algorithm>
+#include <queue>
+#include <unordered_map>
 using namespace std;
 
 int numEstacoesTotal, numLigacoesTotal, numLinhasTotal;
@@ -64,10 +67,12 @@ int readInput(){
             if(!linha->vetorEstacoesLinha[id_estacaoX-1]){
                 //a estacao X ainda nao tinha sido adicionada à linha
                 adicionarEstacaoLinha(linha, id_estacaoX); //adiciona a estacao X à lista de estacoes da linha
+                linha->vetorEstacoesLinha[id_estacaoX-1]=true;
             }
             if(!linha->vetorEstacoesLinha[id_estacaoY-1]){
                 //a estacao Y ainda nao tinha sido adicionada à linha
                 adicionarEstacaoLinha(linha, id_estacaoY); //adiciona a estacao Y à lista de estacoes da linha
+                linha->vetorEstacoesLinha[id_estacaoY-1]=true;
             }
 
             if(!estacoesCriadas[id_estacaoX-1]){
@@ -89,9 +94,6 @@ int readInput(){
     }
     return 0;
 }
-
-
-vector<vector<vector<Linha*> > > Matrix; //matriz com as estacoes em comum de cada par de estacoes
 
 //retorna as estacoes em comum da linha1 e linha2. NULL caso não haja
 set<int> getEstacoesComum(Linha* linhaX, Linha* linhaY){
@@ -139,19 +141,16 @@ int calcula(Linha* linhaInicial){
     while (!filaLinhas.empty()) {
         Linha* atual = filaLinhas.front();
         filaLinhas.pop();
-        printf("linha atual: %d\n",atual->id); // Debugging: mostrar linha atual
 
         int distanciaAtual = distancias[atual->id]; // Distância do nó atual
 
         // Percorrer todas as linhas ligadas
         for (Linha* vizinho : atual->vetorLinhasLigadas) {
-            printf("vizinho novo: %d\n",vizinho->id);
             // Se o vizinho ainda não foi visitado (não está no mapa de distâncias)
             if (distancias.find(vizinho->id) == distancias.end()) {
                 distancias[vizinho->id] = distanciaAtual + 1; // Atualizar a distância
                 filaLinhas.push(vizinho); // Adicionar à fila
                 distanciaMaxima = max(distanciaMaxima, distancias[vizinho->id]); // Atualizar distância máxima
-                printf("distancia: %d\n",distancias[vizinho->id]); // Debugging: mostrar distância
             }
         }
     }
@@ -163,8 +162,14 @@ int main(){
         //programa ja acabou
         return 0;
     }
+    int mudancasLinhaMax = 0;
     estacoesComum();
-    int mudancasLinha = calcula(listaLinhas[0]);
-    printf("%d\n",mudancasLinha);
+    for(int linha=0; linha<numLinhasTotal;linha++){
+        int mudanca= calcula(listaLinhas[linha]);
+        if(mudancasLinhaMax<mudanca){
+            mudancasLinhaMax=mudanca;
+        }
+    }
+    printf("%d\n",mudancasLinhaMax);
     return 0;
 }
