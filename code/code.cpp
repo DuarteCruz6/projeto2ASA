@@ -1,112 +1,170 @@
-#include <vector>
 #include <sstream>
+#include <vector>
+#include <set>
 using namespace std;
 
-struct Ligacao; 
+int numEstacoesTotal, numLigacoesTotal, numLinhasTotal;
 
-struct Estacao{
-    int id; //id da estação
-    int numLinhas; //quantas linhas tem a estacao
-    vector<Ligacao*> listaLigacoes; //vetor com todas as ligacoes desta estacao
-    vector<int> listaLinhas; //vetor com todos os id's das linhas desta estacao
+struct Linha{
+    int id; //id da linha
+    set <int> listaEstacoes; //lista de estacoes que pertencem à linha
+    vector<bool> vetorEstacoesLinha; //vetor de booleans para verificar se uma estacao ja esta ou nao na linha
+    vector<Linha*> vetorLinhasLigadas; //vetor de todas as linhas com ligacoes a esta linha
+
+    //Constructor
+    Linha(int id_linha, int numEstacoes) 
+        :id(id_linha), vetorEstacoesLinha(numEstacoes, false) {}
 };
 
-struct Ligacao{
-    Estacao* estacaoX; 
-    Estacao* estacaoY;
-    int id_linha; //id da linha
-};
+vector <Linha*> listaLinhas; //vetor global com todas as linhas criadas
 
-vector <Estacao*> listaEstacoes; //lista global de todas as estações existentes
-vector <Ligacao*> listaLigacoes; //lista global de todas as ligações existentes
+//adiciona uma estacao à lista de estacoes de uma linha
+void adicionarEstacaoLinha(Linha* linha, int estacao){
+    linha->listaEstacoes.insert(estacao);
+}
 
-//adiciona a linha à estação caso esta ainda não pertencesse
-void adicionarLinhaEstacao(Estacao* estacao, int id_linha){
-    for(int id_linhaAtual : estacao->listaLinhas){
-        if(id_linhaAtual==id_linha){
-            return; //a estacao já tinha esta linha
+//cria uma linha e adiciona-a à lista global de linhas
+Linha* criarLinha(int id_linha, int numEstacoesTotal){
+    Linha* linhaNova = new Linha{id_linha,numEstacoesTotal};
+    listaLinhas.push_back(linhaNova);
+    return linhaNova;
+}
+
+//retorna a linha a partir do id
+Linha* getLinha(int id_linha){
+    for(Linha* linha : listaLinhas){
+        if(linha->id==id_linha){
+            return linha;
         }
     }
-    //a estacao ainda não tinha esta linha
-    estacao->listaLinhas.push_back(id_linha); //adiciona à lista
-    estacao->numLinhas++; //aumenta o numero de linhas da estacao
+    return NULL;
 }
 
-//adiciona uma nova ligacao à estação
-void addLigacao(Estacao* estacao, Ligacao* novaLigacao){
-    estacao->listaLigacoes.push_back(novaLigacao);
-}
-
-//cria uma nova ligacao
-Ligacao* criarLigacao(Estacao* estacaoX, Estacao* estacaoY, int id_linha){
-    Ligacao* novaLigacao = new Ligacao{estacaoX,estacaoY, id_linha}; //cria a ligacao
-    listaLigacoes.push_back(novaLigacao); //adiciona a ligacao à lista global de ligações
-    addLigacao(estacaoX,novaLigacao); //adiciona a ligacao às ligacoes da estacao X
-    addLigacao(estacaoY,novaLigacao); //adiciona a ligacao às liigacoes da estacao Y
-    return novaLigacao;
-}
-
-//cria uma nova estacao e adiciona à lista de estacoes existentes
-Estacao* criarEstacao(int id_novaEstacao, int id_linha){
-    Estacao* novaEstacao = new Estacao{id_novaEstacao,1,{},{id_linha}}; //cria a estação
-    listaEstacoes.push_back(novaEstacao); //adiciona a estação à lista global de estações
-    return novaEstacao;
-}
-
-//retorna a estacao a partir do id
-//retorna NULL caso a estacao ainda não existe
-Estacao* getEstacao(int id_estacao){
-    for(Estacao* estacaoAtual : listaEstacoes){
-        if(estacaoAtual->id==id_estacao){
-            return estacaoAtual; //a estacao existe, portanto retornamo-la
-        }
-    }
-    return NULL; //a estacao nao existe
-}
-
-int numEstacoesTotal, numLigacoesTotal, numLinhas;
-//obtem os inputs e cria todas as entidades
-void getInput(){
-    scanf("%d %d %d", &numEstacoesTotal, &numLigacoesTotal, &numLinhas);
-    vector<bool> estacoesCriadas(numEstacoesTotal, false); //vetor de bools para verificar se a estacao ja foi ou nao criada 
+//obtem os inputs
+int readInput(){
+    scanf("%d %d %d", &numEstacoesTotal, &numLigacoesTotal, &numLinhasTotal);
+    vector<bool> linhasCriadas(numLinhasTotal, false); //vetor de bools para verificar se a linha ja foi ou nao criada
+    vector<bool> estacoesCriadas(numEstacoesTotal, false); //vetor de bools para verificar se a linha ja foi ou nao criada
     int numEstacoesCriadas=0; //para verificar se todas têm ligação
 
     for(int i=0;i<numLigacoesTotal;i++){
         int id_estacaoX, id_estacaoY, id_linha;
         scanf("%d %d %d",&id_estacaoX, &id_estacaoY, &id_linha);
-        Estacao* estacaoX;
-        Estacao* estacaoY;
-        if(!estacoesCriadas[id_estacaoX-1]){
-            //estacao X ainda não foi criada
-            estacaoX = criarEstacao(id_estacaoX,id_linha); //cria a estacao X
-            estacoesCriadas[id_estacaoX-1]=true; //mete true para nao poder ser criada novamente
-            numEstacoesCriadas++; //aumenta o numero de estacoes criadas
-        }else{
-            //estacao X já tinha sido criada
-            estacaoX = getEstacao(id_estacaoX); 
-            adicionarLinhaEstacao(estacaoX,id_linha); //adiciona a linha à estacao caso ainda não a tenha
-        }
-        if(!estacoesCriadas[id_estacaoY-1]){
-            //estacao Y ainda não foi criada
-            estacaoY = criarEstacao(id_estacaoY,id_linha); //cria a estacao Y
-            estacoesCriadas[id_estacaoY-1]=true; //mete true para nao poder ser criada novamente
-            numEstacoesCriadas++; //aumenta o numero de estacoes criadas
-        }else{ 
-            //estacao Y já tinha sido criada
-            estacaoY = getEstacao(id_estacaoY);
-            adicionarLinhaEstacao(estacaoY,id_linha); //adiciona a linha à estacao caso ainda não a tenha
-        }
-        Ligacao* ligacaoNova = criarLigacao(estacaoX,estacaoY,id_linha); //cria a ligacao e adiciona às estações e à lista de ligações
-    }
+        if(id_estacaoX!=id_estacaoY){
+            Linha* linha;
+            if(!linhasCriadas[id_linha-1]){
+                //ainda nao foi criada
+                linha=criarLinha(id_linha,numEstacoesTotal); //cria uma nova linha
+                linhasCriadas[id_linha-1]=true; //mete true no vetor de bools para nao ser criada novamente
+            }else{
+                //a linha ja tinha sido criada
+                linha=getLinha(id_linha); //obtem a linha
+            }
 
+            if(!linha->vetorEstacoesLinha[id_estacaoX-1]){
+                //a estacao X ainda nao tinha sido adicionada à linha
+                adicionarEstacaoLinha(linha, id_estacaoX); //adiciona a estacao X à lista de estacoes da linha
+            }
+            if(!linha->vetorEstacoesLinha[id_estacaoY-1]){
+                //a estacao Y ainda nao tinha sido adicionada à linha
+                adicionarEstacaoLinha(linha, id_estacaoY); //adiciona a estacao Y à lista de estacoes da linha
+            }
+
+            if(!estacoesCriadas[id_estacaoX-1]){
+                //a estacao X ainda nao tinha sido criada
+                numEstacoesCriadas++;
+                estacoesCriadas[id_estacaoX-1]=true;
+            }
+            if(!estacoesCriadas[id_estacaoY-1]){
+                //a estacao Y ainda nao tinha sido criada
+                numEstacoesCriadas++;
+                estacoesCriadas[id_estacaoY-1]=true;
+            }
+        }
+    }
     if(numEstacoesCriadas!=numEstacoesTotal){
         //há pelo menos uma estação sem ligação
         printf("%d\n",-1);
-        return;
+        return -1;
+    }
+    return 0;
+}
+
+
+vector<vector<vector<Linha*> > > Matrix; //matriz com as estacoes em comum de cada par de estacoes
+
+//retorna as estacoes em comum da linha1 e linha2. NULL caso não haja
+set<int> getEstacoesComum(Linha* linhaX, Linha* linhaY){
+    set<int> estacoesComum;
+    set_intersection(
+        linhaX->listaEstacoes.begin(), linhaX->listaEstacoes.end(),
+        linhaY->listaEstacoes.begin(), linhaY->listaEstacoes.end(),
+    inserter(estacoesComum, estacoesComum.begin()));
+    return estacoesComum;
+}
+
+void estacoesComum(){
+    for(int linha=0;linha<numLinhasTotal;linha++){
+        Linha* linhaX = listaLinhas[linha];
+        for(int coluna=linha+1;coluna<numLinhasTotal;coluna++){
+            Linha* linhaY = listaLinhas[coluna];
+            set<int> estacoesComum = getEstacoesComum(linhaX,linhaY);
+            printf("linhaX: %d linhaY: %d\n",linhaX->id,linhaY->id);
+            for (int estacao : estacoesComum) {
+                printf("%d ", estacao);
+            }
+            printf("\n");
+            if (estacoesComum.empty()) {
+                //nao têm estacoes em comum
+            }else{
+                //têm estacoes em comum
+                if(estacoesComum==linhaX->listaEstacoes || estacoesComum==linhaY->listaEstacoes){
+                    //a linha esta inserida noutra linha, logo podemos ignorar esta ligacao entre linhas
+                }else{
+                    //adiciona a ligacao das linhas 
+                    linhaX->vetorLinhasLigadas.push_back(linhaY); 
+                    linhaY->vetorLinhasLigadas.push_back(linhaX);
+                }
+            }
+        }
     }
 }
 
+int calcula(Linha* linhaInicial){
+    queue<Linha*> filaLinhas; //fila de linhas
+    filaLinhas.push(linhaInicial); //adiciona a linha inicial à fila
+    unordered_map<int, int> distancias;
+    distancias[linhaInicial->id] = 0;
+    int distanciaMaxima = 0;
+    while (!filaLinhas.empty()) {
+        Linha* atual = filaLinhas.front();
+        filaLinhas.pop();
+        printf("linha atual: %d\n",atual->id); // Debugging: mostrar linha atual
+
+        int distanciaAtual = distancias[atual->id]; // Distância do nó atual
+
+        // Percorrer todas as linhas ligadas
+        for (Linha* vizinho : atual->vetorLinhasLigadas) {
+            printf("vizinho novo: %d\n",vizinho->id);
+            // Se o vizinho ainda não foi visitado (não está no mapa de distâncias)
+            if (distancias.find(vizinho->id) == distancias.end()) {
+                distancias[vizinho->id] = distanciaAtual + 1; // Atualizar a distância
+                filaLinhas.push(vizinho); // Adicionar à fila
+                distanciaMaxima = max(distanciaMaxima, distancias[vizinho->id]); // Atualizar distância máxima
+                printf("distancia: %d\n",distancias[vizinho->id]); // Debugging: mostrar distância
+            }
+        }
+    }
+    return distanciaMaxima;
+}
+
 int main(){
-    getInput(); //obtem os inputs e cria todas as entidades
+    if(readInput()==-1){
+        //programa ja acabou
+        return 0;
+    }
+    estacoesComum();
+    int mudancasLinha = calcula(listaLinhas[0]);
+    printf("%d\n",mudancasLinha);
     return 0;
 }
