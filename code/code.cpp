@@ -111,22 +111,10 @@ void estacoesComum(){
         for(int coluna=linha+1;coluna<numLinhasTotal;coluna++){
             Linha* linhaY = listaLinhas[coluna];
             set<int> estacoesComum = getEstacoesComum(linhaX,linhaY);
-            printf("linhaX: %d linhaY: %d\n",linhaX->id,linhaY->id);
-            for (int estacao : estacoesComum) {
-                printf("%d ", estacao);
-            }
-            printf("\n");
-            if (estacoesComum.empty()) {
-                //nao têm estacoes em comum
-            }else{
-                //têm estacoes em comum
-                if(estacoesComum==linhaX->listaEstacoes || estacoesComum==linhaY->listaEstacoes){
-                    //a linha esta inserida noutra linha, logo podemos ignorar esta ligacao entre linhas
-                }else{
-                    //adiciona a ligacao das linhas 
-                    linhaX->vetorLinhasLigadas.push_back(linhaY); 
-                    linhaY->vetorLinhasLigadas.push_back(linhaX);
-                }
+            if (!estacoesComum.empty() && estacoesComum!=linhaX->listaEstacoes && estacoesComum!=linhaY->listaEstacoes) {
+                //verifica se têm estacoes em comum e se a linha esta inserida noutra linha
+                linhaX->vetorLinhasLigadas.push_back(linhaY); 
+                linhaY->vetorLinhasLigadas.push_back(linhaX);
             }
         }
     }
