@@ -149,9 +149,10 @@ int calcula(Linha* linhaInicial){
     return distanciaMaxima;
 }
 
+
 int main(){
     if(readInput()==-1){
-        //programa ja acabou
+        //programa ja acabou porque ha uma estacao isolada
         return 0;
     }
     int mudancasLinhaMax = 0;
