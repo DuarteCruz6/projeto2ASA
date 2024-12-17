@@ -98,21 +98,22 @@ int readInput(){
 //retorna as estacoes em comum da linha1 e linha2. NULL caso não haja
 set<int> getEstacoesComum(Linha* linhaX, Linha* linhaY){
     set<int> estacoesComum;
-    set_intersection(
+    set_intersection(                                                   //percorre os dois sets e faz a intersecao
         linhaX->listaEstacoes.begin(), linhaX->listaEstacoes.end(),
         linhaY->listaEstacoes.begin(), linhaY->listaEstacoes.end(),
     inserter(estacoesComum, estacoesComum.begin()));
     return estacoesComum;
 }
 
+//calcula as estacoes em comum de todos os pares de linhas
 void estacoesComum(){
     for(int linha=0;linha<numLinhasTotal;linha++){
-        Linha* linhaX = listaLinhas[linha];
+        Linha* linhaX = listaLinhas[linha]; 
         for(int coluna=linha+1;coluna<numLinhasTotal;coluna++){
-            Linha* linhaY = listaLinhas[coluna];
-            set<int> estacoesComum = getEstacoesComum(linhaX,linhaY);
+            Linha* linhaY = listaLinhas[coluna]; 
+            set<int> estacoesComum = getEstacoesComum(linhaX,linhaY); //vai buscar as estacoes em comum
             if (!estacoesComum.empty() && estacoesComum!=linhaX->listaEstacoes && estacoesComum!=linhaY->listaEstacoes) {
-                //verifica se têm estacoes em comum e se a linha esta inserida noutra linha
+                //verifica se têm estacoes em comum e se a linha esta inserida noutra linha (caso esteja, podemos ignorar)
                 linhaX->vetorLinhasLigadas.push_back(linhaY); 
                 linhaY->vetorLinhasLigadas.push_back(linhaX);
             }
@@ -120,25 +121,28 @@ void estacoesComum(){
     }
 }
 
+//devolve a distancia maximo da linhaInicial até uma estacao qualquer
 int calcula(Linha* linhaInicial){
     queue<Linha*> filaLinhas; //fila de linhas
     filaLinhas.push(linhaInicial); //adiciona a linha inicial à fila
-    unordered_map<int, int> distancias;
-    distancias[linhaInicial->id] = 0;
+
+    unordered_map<int, int> distancias; //lista das distancias linked com o id da linha
+    distancias[linhaInicial->id] = 0; //distancia a si mesmo é zero
     int distanciaMaxima = 0;
+
     while (!filaLinhas.empty()) {
-        Linha* atual = filaLinhas.front();
-        filaLinhas.pop();
+        Linha* atual = filaLinhas.front(); //vai buscar a primeira linha da fila
+        filaLinhas.pop(); //tira a linha
 
-        int distanciaAtual = distancias[atual->id]; // Distância do nó atual
+        int distanciaAtual = distancias[atual->id]; //distancia do nó atual
 
-        // Percorrer todas as linhas ligadas
+        //percorre todas as linhas ligadas à linha atual
         for (Linha* vizinho : atual->vetorLinhasLigadas) {
-            // Se o vizinho ainda não foi visitado (não está no mapa de distâncias)
             if (distancias.find(vizinho->id) == distancias.end()) {
-                distancias[vizinho->id] = distanciaAtual + 1; // Atualizar a distância
-                filaLinhas.push(vizinho); // Adicionar à fila
-                distanciaMaxima = max(distanciaMaxima, distancias[vizinho->id]); // Atualizar distância máxima
+                //ainda nao tinha sido visitado
+                distancias[vizinho->id] = distanciaAtual + 1; //atualizar a distância na lista de distancias
+                filaLinhas.push(vizinho); //adiciona à fila
+                distanciaMaxima = max(distanciaMaxima, distancias[vizinho->id]); //atualiza a distância máxima
             }
         }
     }
@@ -151,11 +155,13 @@ int main(){
         return 0;
     }
     int mudancasLinhaMax = 0;
-    estacoesComum();
+    estacoesComum(); //guarda as estacoes em comum de todos os pares de linhas
+
     for(int linha=0; linha<numLinhasTotal;linha++){
-        int mudanca= calcula(listaLinhas[linha]);
+        int mudanca= calcula(listaLinhas[linha]); //mudanca=num maximo de mudancas de linha para a linha dada
         if(mudancasLinhaMax<mudanca){
-            mudancasLinhaMax=mudanca;
+            //nova distancia maxima
+            mudancasLinhaMax=mudanca; 
         }
     }
     printf("%d\n",mudancasLinhaMax);
